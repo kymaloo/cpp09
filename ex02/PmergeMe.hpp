@@ -6,7 +6,7 @@
 /*   By: trgaspar <trgaspar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/20 13:14:12 by trgaspar          #+#    #+#             */
-/*   Updated: 2025/08/28 18:24:11 by trgaspar         ###   ########.fr       */
+/*   Updated: 2025/08/28 18:47:24 by trgaspar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,12 +49,13 @@ class PmergeMe
 		T	getContainer(void) const;
 		PmergeMe(int argc, char **input);
 		~PmergeMe(){delete [] _input;};
+		PmergeMe(const PmergeMe &cpy){_before = cpy._before; _endChrono = cpy._endChrono; _startChrono = cpy._startChrono; _container = cpy._container;};
+		PmergeMe &operator=(const PmergeMe &ref){_before = ref._before; _endChrono = ref._endChrono; _startChrono = ref._startChrono; _container = ref._container; return (*this);};
 };
 bool isNumber(const std::string &s);
 bool checkOverflow(const std::string &s);
 size_t	indexForJacobsthal(size_t size);
 size_t	nForJacobsthal(size_t n);
-
 
 template <typename T>
 PmergeMe<T>::PmergeMe(int argc, char **input)
