@@ -6,7 +6,7 @@
 /*   By: trgaspar <trgaspar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/03 11:48:36 by trgaspar          #+#    #+#             */
-/*   Updated: 2025/08/27 19:46:41 by trgaspar         ###   ########.fr       */
+/*   Updated: 2025/08/28 17:54:02 by trgaspar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,11 +21,22 @@ int	main(int argc, char **argv)
 	}
 	try
 	{
+		long double timeVec;
+		long double timeDeq;
+
 		PmergeMe<std::vector<int> > PmVector(argc, argv);
 		PmergeMe<std::deque<int> > PmDeque(argc, argv);
-		
+
 		PmVector.start();
 		PmDeque.start();
+		
+		timeVec = PmVector.getTime();
+		timeDeq = PmDeque.getTime();
+
+		std::cout << PmVector.getBefore() << std::endl;
+		PmVector.printContainer();
+		std::cout << "Time to process a range of 5 elements with std::vector : " << timeVec << " us" <<std::endl;
+		std::cout << "Time to process a range of 5 elements with std::deque : " << timeDeq << " us" << std::endl;
 	}
 	catch(const std::exception& e)
 	{

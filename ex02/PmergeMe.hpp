@@ -6,7 +6,7 @@
 /*   By: trgaspar <trgaspar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/20 13:14:12 by trgaspar          #+#    #+#             */
-/*   Updated: 2025/08/27 19:45:47 by trgaspar         ###   ########.fr       */
+/*   Updated: 2025/08/28 18:24:11 by trgaspar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@
 # include <vector>
 # include <deque>
 # include <math.h>
+# include <ctime>
+# include <sys/time.h>
 
 # define INT_MIN -2147483648
 # define INT_MAX 2147483647
@@ -28,6 +30,8 @@ class PmergeMe
 	private:
 		std::string			*_input;
 		std::stringstream	_before;
+		long double 		_endChrono;
+		long double			_startChrono;
 		size_t				_inputSize;
 		T					_container;
 	private:
@@ -35,10 +39,14 @@ class PmergeMe
 		void	stockBefore(void);
 		void	fillContainer(void);
 		void	fordJohnson(T& _cont);
-		void	printContainer(T& cont);
 		void	insertByJacob(T &cont, T &loser);
+		void	binaryInsert(T& sorted, const int value) ;
 	public:
+		void printContainer();
 		void start(void);
+		long double getTime(void);
+		std::string getBefore(void);
+		T	getContainer(void) const;
 		PmergeMe(int argc, char **input);
 		~PmergeMe(){delete [] _input;};
 };
@@ -51,6 +59,10 @@ size_t	nForJacobsthal(size_t n);
 template <typename T>
 PmergeMe<T>::PmergeMe(int argc, char **input)
 {
+	timespec	ts;
+
+	clock_gettime(CLOCK_REALTIME, &ts);
+	_startChrono = ts.tv_nsec;
 	int	j;
 
 	j = 1;
@@ -66,13 +78,18 @@ PmergeMe<T>::PmergeMe(int argc, char **input)
 template <typename T>
 void	PmergeMe<T>::stockBefore()
 {
+	size_t tmp = _inputSize;
 	_before << "Before: ";
-	for (size_t i = 0; i != _inputSize; i++)
+	if (_inputSize > 5)
+		tmp = 5;
+	for (size_t i = 0; i != tmp; i++)
 	{
 		_before << _input[i];
 		if (i + 1 != _inputSize)
 			_before << " ";
 	}
+	if (_inputSize > 5)
+		_before << "[...]";
 }
 
 template <typename T>
@@ -96,7 +113,22 @@ void PmergeMe<T>::start()
 	stockBefore();
 	fillContainer();
 	fordJohnson(_container);
-	printContainer(_container);
+	timespec	ts;
+
+	clock_gettime(CLOCK_REALTIME, &ts);
+	_endChrono = ts.tv_nsec;
+}
+
+template <typename T>
+std::string PmergeMe<T>::getBefore()
+{
+	return (_before.str());
+}
+
+template <typename T>
+long double PmergeMe<T>::getTime()
+{
+	return (_endChrono - _startChrono);
 }
 
 template <typename T>
@@ -131,60 +163,31 @@ void PmergeMe<T>::fordJohnson(T& cont)
     }
     if (n % 2 != 0)
 		loser.push_back(cont[n - 1]);
-	// std::cout << "\nNo i'm loser\n";
-	// printContainer(loser);
-	// std::cout << "Let's gooo\n";
-	// printContainer(winner);
     fordJohnson(winner);
 	cont = winner;
-	//indexForJacobsthal(loser.size());
-	//nForJacobsthal(5);
-	// for (size_t i = 0; i < loser.size(); ++i)
-    // {
-    //     typename T::iterator it = std::lower_bound(cont.begin(), cont.end(), loser[i]);
-    //     cont.insert(it, loser[i]);
-    // }
 	insertByJacob(cont, loser);
 }
 
 template <typename T>
-void PmergeMe<T>::printContainer(T& cont)
+void PmergeMe<T>::printContainer()
 {
-    for (size_t i = 0; i < cont.size(); ++i)
+	size_t tmp = _container.size();
+	std::cout << "After:  ";
+	if (tmp > 5)
+		tmp = 5;
+    for (size_t i = 0; i < tmp; ++i)
 	{
-        std::cout << cont[i] << " ";
+        std::cout << _container[i] << " ";
     }
+	if (_container.size() > 5)
+		std::cout << "[...]";
     std::cout << std::endl;
 }
-
-// ! recup index
-// ! recup la taille par rapport a l'index
-// ! tant que i est diff de l'index
-// ! mettre le inieme element dans le winner
-
-
-// template <typename T>
-// void PmergeMe<T>::insertByJacob(T &cont, T &loser)
-// {
-// 	size_t i;
-// 	size_t j;
-// 	size_t tmp;
-
-// 	i = 0;
-// 	j = indexForJacobsthal(loser.size());
-// 	while (i != j)
-// 	{
-// 		tmp = nForJacobsthal(i);
-// 		typename T::iterator it = std::lower_bound(cont.begin(), cont.end(), loser[tmp]);
-//         cont.insert(it, loser[tmp]);
-// 		i++;
-// 	}
-// }
 
 template <typename T>
 void PmergeMe<T>::insertByJacob(T &cont, T &loser)
 {
-    std::vector<bool> inserted(loser.size(), false);  // Garder trace des éléments insérés
+    std::vector<bool> inserted(loser.size(), false);
     size_t i = 0;
     size_t j = indexForJacobsthal(loser.size());
     
@@ -193,8 +196,7 @@ void PmergeMe<T>::insertByJacob(T &cont, T &loser)
         size_t index = nForJacobsthal(i);
         if (index < loser.size() && !inserted[index])
         {
-            typename T::iterator it = std::lower_bound(cont.begin(), cont.end(), loser[index]);
-            cont.insert(it, loser[index]);
+            binaryInsert(cont, loser[index]);
             inserted[index] = true;
         }
         i++;
@@ -203,8 +205,24 @@ void PmergeMe<T>::insertByJacob(T &cont, T &loser)
     {
         if (!inserted[i])
         {
-            typename T::iterator it = std::lower_bound(cont.begin(), cont.end(), loser[i]);
-            cont.insert(it, loser[i]);
+            binaryInsert(cont, loser[i]);
         }
     }
+}
+
+template <typename T>
+void PmergeMe<T>::binaryInsert(T& sorted, const int value) 
+{
+    typename T::iterator low = sorted.begin();
+    typename T::iterator high = sorted.end();
+
+    while (low != high) 
+    {
+        typename T::iterator mid = low + (high - low) / 2;
+        if (value < *mid)
+            high = mid;
+        else
+            low = mid + 1;
+    }
+    sorted.insert(low, value);
 }
